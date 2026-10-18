@@ -1,0 +1,9 @@
+/*
+  Strict-Transport-Security: max-age=31536000; includeSubDomains
+  content-security-policy: default-src 'self'; script-src 'self' 'sha256-/Y19ZnWntaX43DdEtoOkMY/e3+Cbpsc/8cYJyOoEsnk=' 'sha256-4ZHXzD0LPm/W+tk/l0aLXCp0o44Hna7obNOAJk3sFPc=' 'sha256-Hw+oA7PlvP0kKALbV0sQLMCR1YxxjB5juFcXPXCBAVM=' 'sha256-oe3MPMY+NnycCnfTbH2VTgb3cT7n/qZE1mKOV8uJauU=' 'sha256-qqKv5jknP/DPonQzc2lS70iSxM9Zl8LE3UrlwKwSabk=' 'sha256-v3VfM1kVCD7hhNenujz6/Xmc9+nNIGPiCWdF8d9/TXY=' 'sha256-yT/+ErNMLv17bm6Flklbmu8RfEVZoSsJY9jmpNviMs8='; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self'; connect-src 'self' blob:; form-action 'none'; frame-ancestors 'self'; frame-src 'self'; base-uri 'none'; object-src 'none'; upgrade-insecure-requests
+  cross-origin-opener-policy: same-origin
+  cross-origin-resource-policy: same-origin
+  permissions-policy: accelerometer=(), camera=(), geolocation=(), gyroscope=(), magnetometer=(), microphone=(), payment=(), usb=()
+  referrer-policy: strict-origin-when-cross-origin
+  x-content-type-options: nosniff
+  x-frame-options: SAMEORIGIN

@@ -1,0 +1,916 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<!-- maximum-scale/user-scalable pin the page at 1:1. The stage is sized in
+     pixels captured at load, so pinching out shrinks the page away from it and
+     leaves the instrument sitting in the wrong place. Note iOS Safari ignores
+     user-scalable by design, which is why touch-action below does the real
+     work there. -->
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>Juan Marcos Depetris — Violin</title>
+<meta name="description" content="Juan Marcos Depetris — Violin teacher at the Adeje municipal school of music">
+<link href="fonts.css" rel="stylesheet">
+<style>
+  /* SOLOIST — portfolio for a performing musician. Dark, classical, unhurried.
+     One brass accent, used almost nowhere. The instrument does the work. */
+  :root{--ink:#0c0b0a;--paper:#e9e3d9;--soft:#948b80;--rule:#262320;
+    --brass:#c9a227;--wrap:920px}
+  *{box-sizing:border-box}
+  /* pan-y allows vertical scrolling and nothing else, so a pinch does not zoom.
+     Unlike the viewport meta, iOS honours this. */
+  /* The document itself does not scroll — a container inside it does. This is
+     how TikTok keeps its chrome still: with no document scroll, a phone's
+     address bar never retracts, so the viewport never changes size, so nothing
+     can resize, gap, or re-frame. Everything below is 100% of a box that never
+     moves. */
+  html,body{height:100%;overflow:hidden;overscroll-behavior:none}
+  html{scrollbar-width:none;-ms-overflow-style:none;touch-action:pan-y;background:#0c0b0a}
+  html::-webkit-scrollbar,body::-webkit-scrollbar,.scroll::-webkit-scrollbar{
+    width:0;height:0;display:none}
+  .scroll{position:relative;z-index:1;height:100%;overflow-y:auto;overflow-x:hidden;
+    scroll-behavior:smooth;overscroll-behavior-y:contain;
+    -webkit-overflow-scrolling:touch;scrollbar-width:none;
+    /* pan-y: vertical drags scroll natively, sideways ones are left for the
+       script below to turn the instrument with. */
+    touch-action:pan-y}
+  /* Dragging the instrument used to grab the headline text instead, which is
+     what made it feel sticky. Selection is off everywhere except the contact
+     details — a phone number and an email still have to be copyable. */
+  body{-webkit-user-select:none;user-select:none;
+    margin:0;background:var(--ink);color:var(--paper);
+    font:400 17px/1.75 Inter,-apple-system,"Segoe UI",sans-serif;-webkit-font-smoothing:antialiased}
+  .wrap{max-width:var(--wrap);margin:0 auto;padding:0 26px}
+  a{color:inherit}
+  h1,h2,h3{margin:0;font-weight:400;font-family:"Cormorant Garamond",Georgia,serif;
+    line-height:1.1}
+
+  /* ---- hero ---- */
+  /* <main> spans the whole page above the instrument, so it — not just .hero —
+     is what swallows a drag. Everything that actually needs clicks takes them
+     back below. */
+  main{position:relative}
+
+  /* pointer-events:none lets a drag on the empty parts of the hero reach the
+     instrument behind. Without it <main> swallows every click and the model is
+     not grabbable at all. The text and the scroll cue take their events back. */
+  .hero{position:relative;display:grid;place-items:center;text-align:center;
+    min-height:100%}
+
+  .scroll{cursor:grab}
+
+  /* pointer-events is inherited, so the stage has to claim it back from
+     <main> or the instrument stays unreachable. */
+  /* Plainly responsive: a fixed full-screen backdrop that simply follows the
+     viewport, and a hero one screen tall. An earlier version froze both to
+     pixel values measured at load, to stop a phone's address bar re-framing the
+     instrument — but that machinery caused more than it cured (a black band, an
+     off-centre violin) and browsers already keep fixed elements steady against
+     the layout viewport. pointer-events is reclaimed from <main> so the model
+     stays grabbable. */
+  .stage{position:fixed;inset:0;z-index:0;pointer-events:none}
+  .stage model-viewer{position:absolute;inset:0;width:100%;height:100%}
+
+  /* The background blurs and darkens as you scroll, instead of sliding a
+     frosted panel over it. The stage is fixed and full-screen, so there is no
+     edge anywhere — blur beside sharp always shows a line, however softly the
+     panel is faded. */
+  .stage model-viewer{filter:blur(var(--bg-blur,1.6px))}
+  /* Large, very dark gradients band badly — Firefox especially, since it does
+     not dither them the way Chrome does, so smooth falloff renders as stepped
+     shades. A fine noise layer breaks the steps up. It is one inline SVG, a
+     couple of hundred bytes, tiled. */
+  .stage::after{content:"";position:absolute;inset:0;pointer-events:none;
+    background-color:rgba(12,11,10,var(--bg-dim,0));
+    }
+  /* the grain itself sits at a whisper — enough to dither, not to be seen */
+  .grain{position:fixed;inset:0;z-index:1;pointer-events:none;opacity:.055;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)'/%3E%3C/svg%3E");
+    background-size:160px 160px}
+  /* A warm pool of light behind the instrument, so it reads as lit on a stage
+     rather than floating in a void. Pure CSS — no extra asset to load. */
+  .stage::before{content:"";position:absolute;inset:0;pointer-events:none;
+    background:
+      radial-gradient(58% 66% at 50% 40%,
+        rgba(255,216,158,.12) 0%,  rgba(255,210,146,.085) 22%,
+        rgba(255,204,136,.055) 40%, rgba(255,200,128,.03) 58%,
+        rgba(255,198,124,.014) 74%, rgba(255,198,124,.005) 88%,
+        transparent 100%),
+      radial-gradient(84% 74% at 50% 108%,
+        rgba(201,162,39,.09) 0%,  rgba(201,162,39,.055) 26%,
+        rgba(201,162,39,.028) 48%, rgba(201,162,39,.012) 70%,
+        rgba(201,162,39,.004) 86%, transparent 100%)}
+  .stage model-viewer,.stage img{width:100%;height:100%;display:block;
+    object-fit:cover;--poster-color:transparent;background:transparent}
+  /* Until the model is ready the stage is just the warm pool of light below,
+     then the instrument fades up out of it. Cheaper and calmer than a poster
+     image snapping into place. */
+  .stage model-viewer{opacity:0;transition:opacity 1.2s cubic-bezier(.22,.61,.36,1)}
+  .stage model-viewer.ready{opacity:1}
+  @media (prefers-reduced-motion: reduce){
+    .stage model-viewer{opacity:1;transition:none}
+  }
+  /* The wordmark lags behind the scroll and fades, so the text moves across a
+     fixed instrument rather than a panel sliding over one. */
+  .hero .wrap{position:relative;z-index:2;padding-top:min(12vh,84px);padding-bottom:min(12vh,84px);
+    transform:translate3d(0,var(--hero-y,0px),0);opacity:var(--hero-o,1);
+    will-change:transform,opacity}
+  @media (prefers-reduced-motion: reduce){
+    .hero .wrap{transform:none;opacity:1}
+  }
+  /* A pool of shadow anchored to the wordmark itself. The gradient above is
+     tied to viewport height, so on a short laptop screen the bright body of
+     the violin lands exactly where the name is and washes it out. This one
+     scales with the text, so it holds at any window shape. */
+  .hero .wrap::before{content:"";position:absolute;z-index:-1;
+    left:-55%;right:-55%;top:-40%;bottom:-40%;
+    background:radial-gradient(46% 42% at 50% 47%,
+      rgba(12,11,10,.88) 0%,  rgba(12,11,10,.83) 18%,
+      rgba(12,11,10,.74) 32%, rgba(12,11,10,.61) 44%,
+      rgba(12,11,10,.46) 55%, rgba(12,11,10,.32) 65%,
+      rgba(12,11,10,.20) 74%, rgba(12,11,10,.11) 82%,
+      rgba(12,11,10,.05) 90%, rgba(12,11,10,.02) 95%,
+      rgba(12,11,10,0) 100%)}
+
+  .mark{display:block;text-transform:uppercase}
+  .mark .top,.mark .bot{display:block;font-size:clamp(34px,min(13.5vw,19vh),142px);
+    letter-spacing:.045em;text-indent:.045em;line-height:.9;font-weight:300;
+    color:#e6dfd3;
+    text-shadow:0 2px 44px rgba(12,11,10,.85), 0 1px 3px rgba(12,11,10,.5)}
+  /* The given name: small, brass, and set between two hairlines — the old
+     concert-programme device. The size gap against the surname is the whole
+     effect, so it is deliberately wide. */
+  .mark .mid{display:flex;align-items:center;justify-content:center;
+    gap:clamp(14px,3vw,30px);margin:.62em 0 .5em}
+  .mark .mid em{font-style:normal;font-size:clamp(11px,min(1.9vw,2.6vh),17px);
+    letter-spacing:.62em;margin-right:-.62em;color:#d8ba76;font-weight:400;
+    text-shadow:0 1px 18px rgba(12,11,10,.95)}
+  .mark .mid::before,.mark .mid::after{content:"";height:1px;flex:0 1 auto;
+    width:clamp(26px,8vw,96px)}
+  .mark .mid::before{background:linear-gradient(90deg,transparent,rgba(226,194,116,.62))}
+  .mark .mid::after{background:linear-gradient(90deg,rgba(226,194,116,.62),transparent)}
+  .kicker{display:block;margin-top:min(38px,4vh);font-family:Inter,sans-serif;font-size:12px;
+    letter-spacing:.28em;text-indent:.28em;text-transform:uppercase;color:#bdb4a8;
+    text-shadow:0 1px 16px rgba(12,11,10,.95)}
+  @keyframes rise{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:none}}
+  @keyframes fade{from{opacity:0}to{opacity:1}}
+  .mark .top{animation:rise 1.1s .15s both cubic-bezier(.22,.61,.36,1)}
+  .mark .bot{animation:rise 1.1s .26s both cubic-bezier(.22,.61,.36,1)}
+  .mark .mid{animation:fade 1.3s .62s both}
+  .kicker{animation:fade 1.3s .85s both}
+  @media (prefers-reduced-motion: reduce){
+    .mark .top,.mark .bot,.mark .mid,.kicker{animation:none}
+  }
+
+  .cue{position:absolute;bottom:max(14px,2.5vh);left:50%;transform:translateX(-50%);z-index:2;
+    font-size:11px;letter-spacing:.24em;text-indent:.24em;text-transform:uppercase;
+    color:var(--soft);text-decoration:none}
+
+  /* ---- sections ---- */
+  /* Frosted glass: light enough to read the instrument's shape through, blurred
+     enough that the text stays crisp against it. The hairline top edge is what
+     sells it as a pane of glass rather than a flat tint. */
+  .sheet{position:relative;pointer-events:auto}
+  section{padding:64px 0;position:relative;z-index:1;background:none}
+
+  h2{font-size:12px;letter-spacing:.28em;text-transform:uppercase;color:var(--soft);
+    font-family:Inter,sans-serif;margin-bottom:36px}
+  .lede{font-family:"Cormorant Garamond",Georgia,serif;font-size:clamp(23px,3.4vw,33px);
+    line-height:1.34;max-width:24ch;margin:0 0 26px;font-weight:300}
+  p{margin:0 0 16px;color:#d6cec2;max-width:62ch;
+    text-shadow:0 1px 12px rgba(12,11,10,.7)}
+  .lede,h2,.row .what,.tags li{text-shadow:0 1px 12px rgba(12,11,10,.7)}
+  .meta,.meta a,.row .where,.row .yr,.credit{
+    text-shadow:0 1px 14px rgba(12,11,10,.95), 0 0 26px rgba(12,11,10,.8)}
+
+  .rows{border-top:0}
+  .row{display:grid;gap:4px;padding:18px 0;position:relative}
+
+  .row .yr{font-size:13px;letter-spacing:.14em;color:var(--soft);font-variant-numeric:tabular-nums}
+  .row .what{font-family:"Cormorant Garamond",Georgia,serif;font-size:21px}
+  .row .where{color:var(--soft);font-size:15px}
+
+  .facts{display:flex;flex-wrap:wrap;gap:10px 26px;margin:26px 0 0;padding:0;
+    list-style:none}
+  .facts li{font-size:14px;letter-spacing:.03em;color:var(--soft);
+    text-shadow:0 1px 12px rgba(12,11,10,.8)}
+  .facts li + li{padding-left:26px;position:relative}
+  .facts li + li::before{content:"";position:absolute;left:0;top:.55em;width:1px;
+    height:.9em;background:rgba(226,194,116,.45)}
+  .avail{margin:0 auto 4px;max-width:44ch;color:var(--soft);font-size:16px}
+  .gigs{list-style:none;margin:0;padding:0}
+  .gig{display:grid;gap:5px;padding:20px 0;position:relative}
+  .gig + .gig{border-top:1px solid rgba(242,237,228,.10)}
+  .gig .when{font-size:13px;letter-spacing:.12em;color:var(--soft);
+    font-variant-numeric:tabular-nums;text-transform:uppercase}
+  .gig .when .hr{color:#d8ba76;font-weight:400;margin-left:8px}
+  .gig .what{font-family:"Cormorant Garamond",Georgia,serif;font-size:22px}
+  .gig .where{color:var(--soft);font-size:15px}
+  .gig .tix,.row .watch{display:inline-block;margin-top:4px;font-size:13px;
+    letter-spacing:.12em;text-transform:uppercase;color:#d8ba76;text-decoration:none;
+    border-bottom:1px solid rgba(216,186,118,.45);padding-bottom:2px}
+  /* Today's date gets a mark of its own — the whole point of the section. */
+  .gig .today{display:none;margin-left:10px;padding:2px 9px;border-radius:999px;
+    background:#d8ba76;color:#1a1409;font-weight:600;letter-spacing:.1em;font-size:11px}
+  .gig.is-today .today{display:inline-block}
+  .gig.is-today .what{color:#f2ede4}
+  @media(min-width:760px){
+    .gig{grid-template-columns:190px 1fr auto;gap:26px;align-items:baseline}
+    .gig .where{grid-column:2}
+    .gig .tix{margin-top:0;grid-column:3;grid-row:1}
+  }
+  .tags{display:flex;flex-wrap:wrap;gap:9px;margin:0;padding:0}
+  .tags li{list-style:none;border:1px solid var(--rule);border-radius:999px;
+    padding:9px 18px;font-size:14.5px;color:#cfc7bb}
+
+  .split{display:grid;gap:34px;grid-template-columns:1fr}
+  .shots{display:grid;gap:14px}
+  .portrait{width:100%;border-radius:3px;display:block;
+    filter:saturate(.92) contrast(1.04);
+    box-shadow:0 24px 60px -24px rgba(0,0,0,.85)}
+
+  .btn{display:inline-block;padding:15px 30px;border:1px solid var(--paper);
+    color:var(--paper);text-decoration:none;font-size:14px;letter-spacing:.14em;
+    text-transform:uppercase;transition:background-color .2s ease,color .2s ease}
+  .btn:hover{background:var(--paper);color:var(--ink)}
+  .cta{display:flex;flex-wrap:wrap;gap:12px;margin-top:30px}
+
+  .end{text-align:center;padding:96px 0}
+  .end h2{text-indent:.28em}
+  .end .lede{margin-left:auto;margin-right:auto}
+  .meta{margin-top:34px;color:var(--soft);font-size:15px;line-height:2;
+    -webkit-user-select:text;user-select:text}
+  .meta a{text-decoration:none;border-bottom:1px solid var(--rule)}
+
+  .credit{display:block;margin-top:12px;font-size:13px;color:#8b8378}
+  .credit a{color:#c9a227;text-decoration:none;border-bottom:1px solid rgba(201,162,39,.4);
+    padding-bottom:1px}
+  .credit a:hover{color:#e0bd63}
+  footer{padding:26px 0 40px;color:var(--soft);font-size:13px;text-align:center;
+    position:relative;z-index:1}
+
+
+  @media(min-width:760px){
+    .row{grid-template-columns:110px 1fr 1fr;gap:26px;align-items:baseline}
+    .split{grid-template-columns:1fr 1.15fr;align-items:start;gap:52px}
+    section{padding:86px 0}
+  }
+  @media (prefers-reduced-motion: reduce){ html{scroll-behavior:auto} }
+</style>
+<link rel="alternate" hreflang="es" href="https://marcosdepetris.com/">
+<link rel="alternate" hreflang="en" href="https://marcosdepetris.com/en/" data-current>
+<!-- META — injected into every page at build time by make.py.
+
+     This is what WhatsApp, Facebook Messenger and iMessage read when you paste
+     a link. Without it a link shows as a bare grey rectangle; with it the
+     recipient sees a card with their own business name on it before they have
+     tapped anything. On a cold outreach message that is most of the battle. -->
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Juan Marcos Depetris">
+<meta property="og:title" content="Juan Marcos Depetris —  in Tenerife">
+<meta property="og:description" content="Profesor de violín en la Escuela Municipal de Música de Adeje">
+<meta property="og:image" content="https://marcosdepetris.com/og.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:url" content="https://marcosdepetris.com/en/">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Juan Marcos Depetris —  in Tenerife">
+<meta name="twitter:description" content="Profesor de violín en la Escuela Municipal de Música de Adeje">
+<meta name="twitter:image" content="https://marcosdepetris.com/og.png">
+<meta name="theme-color" content="#ffffff">
+<link rel="canonical" href="https://marcosdepetris.com/en/">
+<link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%2064%2064%22%3E%3Crect%20width%3D%2264%22%20height%3D%2264%22%20rx%3D%2214%22%20fill%3D%22%2314140f%22/%3E%3Ctext%20x%3D%2232%22%20y%3D%2245%22%20text-anchor%3D%22middle%22%20fill%3D%22%23fff%22%20font-family%3D%22Segoe%20UI%2CArial%2Csans-serif%22%20font-size%3D%2236%22%20font-weight%3D%22700%22%3EJ%3C/text%3E%3C/svg%3E">
+</head>
+<body>
+
+<div class="stage" aria-hidden="true">
+      
+      <model-viewer src="violin.glb" poster="" alt=""
+        camera-orbit="0deg 84deg 118%"
+        interaction-prompt="none" exposure="2.0" tone-mapping="aces"
+        interpolation-decay="140"
+        shadow-intensity="0.45" shadow-softness="1"
+        environment-image="neutral" loading="eager" reveal="auto"></model-viewer>
+      
+      
+</div>
+<div class="grain" aria-hidden="true"></div>
+
+<div class="scroll" id="scroll">
+
+  <div class="hero" id="top">
+
+    <div class="wrap">
+      <h1 class="mark">
+        <span class="top">Marcos</span>
+        <span class="mid"><em>Juan</em></span>
+        <span class="bot">Depetris</span>
+      </h1>
+      <span class="kicker">Violin &middot; Tenerife</span>
+    </div>
+    <a class="cue" href="#about">Scroll</a>
+  </div>
+
+<main>
+
+  <div class="sheet">
+
+  
+  <section id="agenda"><div class="wrap">
+    <h2>Coming up</h2>
+    <ul class="gigs"></ul>
+  </div></section>
+  
+
+  
+  <section id="about"><div class="wrap">
+    <h2>About</h2>
+    <div class="split">
+      <div class="shots">
+        <img class="portrait" src="marcos-sunset.webp" alt="Juan Marcos Depetris">
+        <img class="portrait" src="marcos-portrait.webp" alt="Juan Marcos Depetris">
+      </div>
+      <div>
+        <p class="lede">Violin teacher at the Adeje municipal school of music</p>
+        
+        
+      </div>
+    </div>
+  </div></section>
+  
+
+  
+
+  
+
+  
+
+  
+  <section id="teaching"><div class="wrap">
+    <h2>Teaching</h2>
+    <p class="lede">Lessons are adapted to each student's level, always emphasising the importance of a good sound and good intonation. The pieces studied are mostly classical, though contemporary works can be taken on too.</p>
+  </div></section>
+  
+
+  <section class="end" id="contact"><div class="wrap">
+    <h2>Contact</h2>
+    <p class="lede">For performances, collaborations and lessons.</p>
+    
+    <div class="cta" style="justify-content:center">
+      
+      <a class="btn" href="https://wa.me/34696836082">WhatsApp</a>
+    </div>
+    <div class="meta">
+      
+      <a href="tel:+34696836082">+34 696 836 082</a>
+    </div>
+  </div></section>
+
+  </div>
+</main>
+
+<footer><div class="wrap">
+  &copy; <span id="yr"></span> Juan Marcos Depetris
+  <span class="credit">Want one like this?
+    <a href="https://tenerifewebguy.com/" target="_blank" rel="noopener">tenerifewebguy.com</a></span>
+</div></footer>
+</div>
+
+<script type="module" src="model-viewer.min.js"></script>
+<script>
+document.getElementById('yr').textContent=new Date().getFullYear();
+
+/* Concert dates look after themselves: anything in the past is removed, today's
+   is flagged, and the section disappears once nothing is upcoming. Marcos adds
+   a date once and never has to come back and tidy it. Done in the browser
+   because a built page cannot know what day it is being read. */
+(function(){
+  var list = document.querySelector('.gigs');
+  if (!list) return;
+  var now = new Date(); now.setHours(0,0,0,0);
+  var today = now.getTime();
+  var live = 0;
+  [].slice.call(list.querySelectorAll('.gig')).forEach(function(g){
+    var raw = g.getAttribute('data-date');
+    var d = new Date(raw + 'T00:00:00');
+    if (isNaN(d)) { live++; return; }          // unparseable: leave it be
+    var when = d.getTime();
+    if (when < today) { g.remove(); return; }  // already happened
+    live++;
+    if (when === today) g.classList.add('is-today');
+    // Show the date in the reader's own language rather than as digits.
+    var t = g.querySelector('time');
+    if (t) {
+      try {
+        t.textContent = d.toLocaleDateString(document.documentElement.lang || 'en',
+          {weekday:'short', day:'numeric', month:'long'});
+      } catch (e) {}
+    }
+  });
+  if (!live) {
+    var sec = list.closest('section');
+    if (sec) sec.remove();
+  }
+})();
+
+/* iOS Safari treats pinch-zoom as a browser gesture: it ignores user-scalable
+   in the viewport meta and touch-action does not reach it either. These
+   non-standard gesture events are the only thing Safari honours. Without this
+   a pinch shrinks the visual viewport, the fixed stage shrinks with it and the
+   instrument re-frames. */
+['gesturestart','gesturechange','gestureend'].forEach(function(ev){
+  document.addEventListener(ev, function(e){ e.preventDefault(); }, {passive:false});
+});
+/* and kill the double-tap-to-zoom shortcut */
+document.addEventListener('dblclick', function(e){ e.preventDefault(); }, {passive:false});
+(function(){
+  var mv = document.querySelector('model-viewer');
+  if (!mv) return;
+  // The container is what scrolls now, so every measurement and every
+  // programmatic scroll has to come from it rather than the window.
+  var SC = document.getElementById('scroll');
+  if (!SC) return;
+  function sy(){ return SC.scrollTop; }
+  function smax(){ return SC.scrollHeight - SC.clientHeight; }
+  function vhh(){ return Math.max(1, SC.clientHeight); }
+
+  function ready(){ mv.classList.add('ready'); }
+  if (mv.loaded) ready(); else mv.addEventListener('load', ready, {once:true});
+
+  // Dragging nudges the instrument rather than seizing it. The angle is always
+  // the scroll's angle plus your offset, so the two never fight for the camera
+  // and scrolling keeps turning it after you have let go.
+  // model-viewer's own camera-controls are off: they allow zoom and pan, which
+  // let the violin be blown up past the edges of the screen.
+  var uTheta = 0, uPhi = 0;
+  var SENS_X = 0.20, SENS_Y = 0.12;      // degrees per pixel — deliberately calm
+  var PHI_MIN = 66, PHI_MAX = 100;       // never tips over the top or under
+  var drag = null;
+
+  function grab(e){
+    if (e.pointerType === 'mouse' && e.button !== 0) return;
+    drag = {x: e.clientX, y: e.clientY, axis: e.pointerType === 'mouse' ? 'turn' : null};
+  }
+  function move(e){
+    if (!drag) return;
+    var dx = e.clientX - drag.x, dy = e.clientY - drag.y;
+    // On touch, decide once what the gesture is: sideways turns the instrument,
+    // up and down scrolls the page. Otherwise the hero becomes a trap you
+    // cannot swipe past.
+    if (!drag.axis){
+      if (Math.abs(dx) < 6 && Math.abs(dy) < 6) return;
+      drag.axis = Math.abs(dx) > Math.abs(dy) ? 'turn' : 'scroll';
+      if (drag.axis === 'scroll'){ drag = null; return; }
+    }
+    if (e.cancelable) e.preventDefault();
+    // Subtracted, not added. camera-orbit turns the camera around the object,
+    // so adding the drag makes the violin appear to run away from your finger.
+    // Negating it means you are turning the instrument itself, which is what a
+    // hand on a physical object does.
+    uTheta -= dx * SENS_X;
+    uPhi = Math.max(PHI_MIN - 84, Math.min(PHI_MAX - 84, uPhi - dy * SENS_Y));
+    drag.x = e.clientX; drag.y = e.clientY;
+    apply(true);
+  }
+  function drop(){ drag = null; }
+
+  SC.addEventListener('pointerdown', grab, {passive:true});
+  SC.addEventListener('pointermove', move, {passive:false});
+  addEventListener('pointerup', drop, {passive:true});
+  addEventListener('pointercancel', drop, {passive:true});
+  // A still instrument for anyone who has asked for less motion.
+  if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+
+  var BASE = 84, SWEEP = 300;   // degrees of turn over the whole page
+
+  // model-viewer frames the model to just fit at 100%. A tall phone needs a
+  // little margin so the scroll and the base are not clipped; a wide screen
+  // has height to spare, so we move in and let the instrument fill it.
+  // Cached against WIDTH only. On a phone the address bar hides as you scroll,
+  // which changes innerHeight, which changed the aspect ratio, which re-framed
+  // the camera — the violin appeared to zoom mid-scroll and then settle back.
+  // Width does not change when the bar moves.
+  // One fit value for every screen: model-viewer frames a model to just fit
+  // its container whatever that container's shape, so there is nothing to
+  // compute per device.
+  var FIT = 118;
+  function dist(){ return FIT; }
+  var pending = false, last = -1, lastDist = -1;
+
+  // A touch of blur from the very top — depth of field, so the text reads as
+  // being in front of the instrument rather than painted on it. It deepens once
+  // you start leaving the hero, and unwinds the same way coming back up.
+  var BASEBLUR = 1.6, MAXBLUR = 16, MAXDIM = 0.62, LIFT = 150;
+  var RAMP_FROM = 0.45, RAMP_OVER = 0.85;   // in viewport heights
+  var bNow = 1.6, dNow = 0, bWant = 1.6, dWant = 0, vRaf = null;
+  var root = document.documentElement.style;
+
+  function paint(){
+    root.setProperty('--bg-blur', bNow.toFixed(2) + 'px');
+    root.setProperty('--bg-dim', dNow.toFixed(3));
+  }
+  // Scroll events arrive in clumps — especially mobile momentum — so easing
+  // toward the target every frame is what actually makes the blur look smooth.
+  function glide(){
+    var db = bWant - bNow, dd = dWant - dNow;
+    if (Math.abs(db) < 0.02 && Math.abs(dd) < 0.002){
+      bNow = bWant; dNow = dWant; vRaf = null; paint(); return;
+    }
+    bNow += db * 0.16; dNow += dd * 0.16;
+    paint();
+    vRaf = requestAnimationFrame(glide);
+  }
+  function veil(){
+    var y = sy(), vh = vhh();
+    var k = Math.min(1, Math.max(0, (y - vh * RAMP_FROM) / (vh * RAMP_OVER)));
+    k = k * k * (3 - 2 * k);                       // ease in and out, both ways
+    bWant = BASEBLUR + k * (MAXBLUR - BASEBLUR);
+    dWant = k * MAXDIM;
+    if (!vRaf) vRaf = requestAnimationFrame(glide);
+
+    // hero text: lags the scroll, then fades out
+    var h = Math.min(1, Math.max(0, y / vh));
+    root.setProperty('--hero-y', (h * LIFT).toFixed(1) + 'px');
+    root.setProperty('--hero-o', Math.max(0, 1 - h * 1.35).toFixed(3));
+  }
+
+  function apply(force){
+    pending = false;
+    veil();
+    var max = smax();
+    var p = max > 0 ? Math.min(1, Math.max(0, sy() / max)) : 0;
+    var theta = Math.round(p * SWEEP);
+    if (!force && theta === last && dist() === lastDist) return;
+    last = theta; lastDist = dist();
+    mv.setAttribute('camera-orbit',
+      (theta + uTheta).toFixed(1) + 'deg ' + (BASE + uPhi).toFixed(1) + 'deg ' + dist() + '%');
+  }
+  function onScroll(){ if (!pending) { pending = true; requestAnimationFrame(apply); } }
+
+  SC.addEventListener('scroll', onScroll, {passive:true});
+  addEventListener('resize', onScroll, {passive:true});
+  apply();
+
+  // ---- drift ----
+  // One pass, once. If nothing is touched for a while after load the page eases
+  // itself downward so the instrument turns. The moment anyone scrolls, taps or
+  // presses a key it eases back to a stop and never starts again — a page that
+  // keeps taking the scroll back off you is infuriating.
+  //
+  // Idle is timed from real input events, never from the scroll event: we scroll
+  // the page ourselves, which fires that and would cancel the drift instantly.
+  var IDLE = 3500, SPEED = 48, SPIN_UP = 1000, SPIN_DOWN = 320;
+  var timer = null, raf = null, spent = false;
+  var gain = 0, target = 0, carry = 0;
+
+  function atBottom(){
+    return sy() >= smax() - 2;
+  }
+  function stopNow(){
+    if (raf) { cancelAnimationFrame(raf); raf = null; }
+    gain = target = 0;
+  }
+  function drift(){
+    if (spent || atBottom()) return;
+    spent = true;            // this is the only run it gets
+    target = 1;
+    var prev = performance.now();
+    raf = requestAnimationFrame(function step(now){
+      // A stalled frame — a slow paint, a backgrounded tab, the model finishing
+      // its upload — used to arrive as one enormous dt and fling the page down
+      // in a single step, which then whipped the instrument round to its back.
+      var dt = Math.min(50, now - prev); prev = now;
+      // Ease in at the start, ease out when interrupted — never a hard cut.
+      var rate = dt / (target > gain ? SPIN_UP : SPIN_DOWN);
+      gain += (target - gain) * Math.min(1, rate * 3);
+      if (target === 0 && gain < 0.01) { stopNow(); return; }
+      // Early frames move a fraction of a pixel. Carry the remainder rather
+      // than letting each one round away to nothing.
+      carry += SPEED * gain * dt / 1000;
+      var whole = Math.floor(carry);
+      if (whole >= 1) { carry -= whole; SC.scrollBy({top: whole, behavior: 'instant'}); }
+      if (atBottom()) { target = 0; }
+      raf = requestAnimationFrame(step);
+    });
+  }
+  function surrender(){       // a real person took the wheel: done for good
+    spent = true;
+    clearTimeout(timer);
+    target = 0;              // coast to a halt rather than snapping
+    if (!raf) stopNow();
+  }
+  function pause(){           // tab hidden — hold, do not forfeit the run
+    clearTimeout(timer);
+    stopNow();
+  }
+  function resume(){
+    if (!spent) timer = setTimeout(drift, IDLE);
+  }
+
+  ['wheel','touchstart','touchmove','keydown','pointerdown','mousedown']
+    .forEach(function(ev){ addEventListener(ev, surrender, {passive:true}); });
+  addEventListener('visibilitychange', function(){ document.hidden ? pause() : resume(); });
+  timer = setTimeout(drift, IDLE);
+})();
+</script>
+<!-- NAV — injected into every theme at build time by make.py.
+
+     Builds the menu by finding every section that has an id and a heading, and
+     using that heading as the label. A site with no Pricing section therefore
+     has no Pricing link, and a new section shows up in the menu on its own.
+     Nothing to keep in sync by hand.
+
+     Colours are read off the live page at runtime, so the panel matches
+     whichever theme it lands in (light or dark) without per-theme CSS. -->
+<style>
+  .burger{display:none;flex-direction:column;align-items:center;justify-content:center;
+    width:42px;height:42px;
+    padding:0;margin:0;border:0;background:none;color:inherit;cursor:pointer;
+    -webkit-tap-highlight-color:transparent}
+  .burger span{display:block;width:20px;height:1.5px;background:currentColor;border-radius:2px;
+    transition:transform .28s cubic-bezier(.22,.61,.36,1), opacity .18s ease}
+  .burger span + span{margin-top:5px}
+  .burger[aria-expanded="true"] span:nth-child(1){transform:translateY(6.5px) rotate(45deg)}
+  .burger[aria-expanded="true"] span:nth-child(2){opacity:0}
+  .burger[aria-expanded="true"] span:nth-child(3){transform:translateY(-6.5px) rotate(-45deg)}
+
+  /* Colours are set from the live page in script — a fixed white pill was
+     styled for the light themes and looked pasted on over a dark one. */
+  .burger.float{position:fixed;top:12px;right:12px;z-index:120;border-radius:10px}
+
+  .navpanel{position:fixed;inset:0;z-index:110;display:flex;flex-direction:column;
+    justify-content:center;padding:80px 30px 40px;
+    opacity:0;visibility:hidden;transform:translateY(-8px);
+    transition:opacity .26s ease, transform .26s cubic-bezier(.22,.61,.36,1), visibility .26s}
+  .navpanel.open{opacity:1;visibility:visible;transform:none}
+  .navpanel a{display:block;text-decoration:none;font-size:30px;font-weight:600;
+    letter-spacing:-.025em;padding:13px 0;opacity:.92}
+  .navpanel a + a{border-top:1px solid var(--_panel-rule,rgba(128,128,128,.22))}
+  .navpanel .go{margin-top:34px;display:flex;flex-wrap:wrap;gap:10px}
+  /* Language switcher — a globe and the languages, set apart from the links
+     above it so it reads as a setting rather than another destination. */
+  .navpanel .langs{margin-top:26px;padding-top:22px;display:flex;align-items:center;
+    gap:12px;border-top:1px solid var(--_panel-rule,rgba(128,128,128,.22))}
+  .navpanel .langs svg{width:17px;height:17px;flex:0 0 auto;opacity:.6}
+  .navpanel .langs a{font-size:14px;font-weight:500;padding:7px 13px;border-radius:7px;
+    letter-spacing:.06em;text-transform:uppercase;opacity:.62;border:1px solid transparent}
+  .navpanel .langs a[aria-current]{opacity:1;
+    border-color:var(--_panel-rule,rgba(128,128,128,.3))}
+  .navpanel .go a{font-size:15px;font-weight:500;padding:14px 26px;border-radius:8px;
+    border:1px solid var(--_panel-rule,rgba(128,128,128,.3));opacity:1}
+  body.navlock{overflow:hidden}
+
+  @media(max-width:759px){ .burger{display:flex} }
+  @media (prefers-reduced-motion: reduce){
+    .navpanel,.burger span{transition:none}
+  }
+</style>
+<script>
+(function(){
+  // Any element with an id that owns a heading is a menu entry, labelled by
+  // that heading. #top is the page itself, not a section.
+  var items = [].slice.call(document.querySelectorAll('[id]')).filter(function(el){
+    if (el.id === 'top' || el.closest('header')) return false;
+    var h = el.querySelector('h2, h3');
+    return !!(h && h.textContent.trim());
+  }).filter(function(el, i, arr){
+    // Drop wrappers that only contain another candidate.
+    return !arr.some(function(o){ return o !== el && el.contains(o); });
+  });
+  if (items.length < 2) return;
+
+  // Prefer the section's own heading — "What I do" reads better than "Services".
+  // But some themes head the contact block with a whole sentence, which makes a
+  // terrible menu entry, so anything long falls back to a plain name.
+  // Per language, or a Spanish page ends up with English menu entries wherever
+  // a heading is too long to use directly.
+  var NAMES_BY_LANG = {
+    en: {work:'Services', services:'Services', pricing:'Prices', prices:'Prices',
+         about:'About', areas:'Areas', contact:'Contact', booking:'Booking system',
+         faq:'FAQ', how:'How it works', styles:'Styles'},
+    es: {work:'Servicios', services:'Servicios', pricing:'Precios', prices:'Precios',
+         about:'Sobre mí', areas:'Zonas', contact:'Contacto', booking:'Reservas',
+         faq:'Preguntas', how:'Cómo funciona', styles:'Estilos'},
+    de: {work:'Leistungen', services:'Leistungen', pricing:'Preise', prices:'Preise',
+         about:'Über mich', areas:'Gebiete', contact:'Kontakt', booking:'Buchung',
+         faq:'FAQ', how:'Ablauf', styles:'Stile'}
+  };
+  var NAMED = NAMES_BY_LANG[(document.documentElement.lang || 'en').slice(0,2)]
+              || NAMES_BY_LANG.en;
+  function label(el){
+    var t = el.querySelector('h2, h3').textContent.trim().replace(/\s+/g, ' ');
+    // A touch more generous than before: Spanish headings run longer than the
+    // English ones and were being discarded for no good reason.
+    if (t.length <= 26 && t.split(' ').length <= 4) return t;
+    if (NAMED[el.id]) return NAMED[el.id];
+    return t.length > 26 ? t.slice(0, 24).trim() + '…' : t;
+  }
+
+  var cs = getComputedStyle(document.body);
+  var bg = cs.backgroundColor, fg = cs.color;
+  // A transparent body background would make the panel see-through; fall back
+  // to the html element, then to white.
+  if (!bg || bg === 'rgba(0, 0, 0, 0)' || bg === 'transparent') {
+    bg = getComputedStyle(document.documentElement).backgroundColor;
+  }
+  if (!bg || bg === 'rgba(0, 0, 0, 0)' || bg === 'transparent') bg = '#fff';
+
+  var panel = document.createElement('nav');
+  panel.className = 'navpanel';
+  panel.setAttribute('aria-label', 'Menu');
+  panel.style.background = bg;
+  panel.style.color = fg;
+  document.documentElement.style.setProperty('--_panel-bg', bg);
+
+  items.forEach(function(sec){
+    var a = document.createElement('a');
+    a.href = '#' + sec.id;
+    a.textContent = label(sec);
+    panel.appendChild(a);
+  });
+
+  var wa = document.querySelector('a[href*="wa.me"]');
+  var tel = document.querySelector('a[href^="tel:"]');
+  if (wa || tel){
+    var go = document.createElement('div');
+    go.className = 'go';
+    if (wa){ var w = document.createElement('a'); w.href = wa.href; w.textContent = 'WhatsApp'; go.appendChild(w); }
+    if (tel){ var t = document.createElement('a'); t.href = tel.href; t.textContent = 'Call'; go.appendChild(t); }
+    panel.appendChild(go);
+  }
+  // Built from the <link rel="alternate"> tags the build already emits, so the
+  // switcher and what search engines are told can never disagree.
+  var alts = [].slice.call(document.querySelectorAll('link[rel="alternate"][hreflang]'));
+  if (alts.length > 1){
+    var NAMES = {en:'English', es:'Español', de:'Deutsch', fr:'Français'};
+    var box = document.createElement('div');
+    box.className = 'langs';
+    box.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" ' +
+      'stroke-width="1.5" aria-hidden="true"><circle cx="12" cy="12" r="9"/>' +
+      '<path d="M3 12h18M12 3c2.5 2.7 2.5 15.3 0 18M12 3c-2.5 2.7-2.5 15.3 0 18"/></svg>';
+    alts.forEach(function(l){
+      var lg = l.getAttribute('hreflang');
+      var a = document.createElement('a');
+      a.href = l.getAttribute('href');
+      a.textContent = lg;
+      a.title = NAMES[lg] || lg;
+      a.setAttribute('lang', lg);
+      if (l.hasAttribute('data-current')) a.setAttribute('aria-current', 'true');
+      box.appendChild(a);
+    });
+    panel.appendChild(box);
+  }
+
+  document.body.appendChild(panel);
+
+  // Rebuild the desktop header nav from the same list, so Pricing and About
+  // appear there too and there is only one source of truth for the links.
+  var hnav = document.querySelector('header nav');
+  if (hnav){
+    hnav.innerHTML = '';
+    items.forEach(function(sec){
+      var a = document.createElement('a');
+      a.href = '#' + sec.id;
+      a.textContent = label(sec);
+      hnav.appendChild(a);
+    });
+  }
+
+  var btn = document.createElement('button');
+  btn.className = 'burger';
+  btn.type = 'button';
+  btn.setAttribute('aria-label', 'Menu');
+  btn.setAttribute('aria-expanded', 'false');
+  btn.innerHTML = '<span></span><span></span><span></span>';
+
+  // Sit inside the header bar where there is one; otherwise float top-right and
+  // stay visible at every width, since those themes have no other navigation.
+  // Only a real header BAR. Falling back to any <header> was too loose: the
+  // portfolio theme's hero is a <header>, so the button was appended into a
+  // centred grid, became a second row, shoved the wordmark up and claimed a
+  // strip of empty space beneath it.
+  var bar = document.querySelector('header .bar');
+  if (bar) bar.appendChild(btn);
+  else {
+    btn.classList.add('float');
+    btn.style.display = 'flex';
+    btn.style.color = fg;
+    // A whisper of the page's own background behind it, so it reads as part of
+    // the page rather than a chip dropped on top.
+    btn.style.background = bg.replace(/^rgb\(/, 'rgba(').replace(/\)$/, ', .55)');
+    btn.style.backdropFilter = 'blur(6px)';
+    btn.style.webkitBackdropFilter = 'blur(6px)';
+    document.body.appendChild(btn);
+  }
+
+  var home = btn.parentNode;
+
+  function set(open){
+    // Most themes give <header> a z-index, which makes it a stacking context —
+    // so a button inside it can never paint above the panel, whatever z-index
+    // it is given. It has to actually leave the header. Pinned to the exact
+    // spot it already occupied, so it becomes the X without jumping. Moving it
+    // to <body> also means it inherits the body's text colour, which is what
+    // contrasts with the panel (a dark-header theme would otherwise put a white
+    // X on a white panel).
+    if (open){
+      var r = btn.getBoundingClientRect();
+      document.body.appendChild(btn);
+      btn.style.position = 'fixed';
+      btn.style.top = r.top + 'px';
+      btn.style.left = r.left + 'px';
+      btn.style.zIndex = '120';
+    } else {
+      btn.style.position = btn.style.top = btn.style.left = btn.style.zIndex = '';
+      if (home !== btn.parentNode) home.appendChild(btn);
+    }
+    btn.setAttribute('aria-expanded', String(open));
+    panel.classList.toggle('open', open);
+    document.body.classList.toggle('navlock', open);
+  }
+  btn.addEventListener('click', function(){
+    set(btn.getAttribute('aria-expanded') !== 'true');
+  });
+  panel.addEventListener('click', function(e){
+    if (e.target.tagName === 'A') set(false);
+  });
+  document.addEventListener('keydown', function(e){
+    if (e.key === 'Escape' && btn.getAttribute('aria-expanded') === 'true') { set(false); btn.focus(); }
+  });
+})();
+</script>
+<!-- MOTION — injected into every theme at build time by make.py.
+     Restrained on purpose: one 8px rise, one fade, staggered. Nothing loops,
+     nothing slides in from the side, nothing moves twice. Fully skipped for
+     anyone with reduced-motion on, and for anyone with JS off the page is
+     simply already visible. -->
+<style>
+  @media (prefers-reduced-motion: no-preference){
+    .rv{opacity:0;transform:translateY(9px);
+        transition:opacity .55s cubic-bezier(.22,.61,.36,1),
+                   transform .55s cubic-bezier(.22,.61,.36,1);
+        transition-delay:var(--d,0ms)}
+    .rv.in{opacity:1;transform:none}
+  }
+  /* interaction polish — applies with or without JS */
+  a[class*="btn"]{transition:transform .16s ease, opacity .16s ease, background-color .16s ease}
+  a[class*="btn"]:hover{opacity:.9}
+  a[class*="btn"]:active{transform:translateY(1px)}
+  .card,.item,.row{transition:border-color .2s ease}
+  .card:hover{border-color:#c9c9c4}
+  a{text-underline-offset:3px}
+  :focus-visible{outline:2px solid currentColor;outline-offset:3px;border-radius:2px}
+</style>
+<script>
+(function(){
+  var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if (reduce || !('IntersectionObserver' in window)) return;
+
+  // Sticky/fixed elements are excluded on purpose: a transform on them breaks
+  // the stickiness (header, studio's .side, the mobile .dock).
+  var sel = '.hero h1, .hero .lead, .hero p, .hero .cta, .kicker,' +
+            'section h2, section > .wrap > h2, .head, h1 + .lead,' +
+            '.card, .item, .row, .spec, .facts, .slab, .areas li,' +
+            '.end h3, .end h2, .end p, .end .cta, .meta, .top, .blk';
+
+  var all = Array.prototype.slice.call(document.querySelectorAll(sel));
+  if (!all.length) return;
+
+  // Anything already on screen when the page loads is left alone entirely —
+  // no fade, no delay. Fading in the hero makes a fast page feel slow and is
+  // exactly the twitchiness this is meant to avoid. Measured before any class
+  // is added, so nothing has moved yet.
+  var fold = window.innerHeight * 0.95;
+  var nodes = all.filter(function(el){
+    return el.getBoundingClientRect().top >= fold;
+  });
+  if (!nodes.length) return;
+
+  // Stagger only within a shared parent, so lists cascade but sections don't
+  // wait on each other.
+  var seen = new Map();
+  nodes.forEach(function(el){
+    var p = el.parentNode;
+    var i = seen.get(p) || 0;
+    seen.set(p, i + 1);
+    el.style.setProperty('--d', Math.min(i * 55, 275) + 'ms');
+    el.classList.add('rv');
+  });
+
+  // Elements now scroll inside a container, so the observer must watch that
+  // container rather than the viewport, or nothing ever counts as visible.
+  var SC = document.getElementById('scroll');
+  var io = new IntersectionObserver(function(entries){
+    entries.forEach(function(e){
+      if (!e.isIntersecting) return;
+      e.target.classList.add('in');
+      io.unobserve(e.target);
+    });
+  }, {root: SC || null, rootMargin: '0px 0px -8% 0px', threshold: 0.05});
+
+  nodes.forEach(function(el){ io.observe(el); });
+})();
+</script>
+
+</body>
+</html>
